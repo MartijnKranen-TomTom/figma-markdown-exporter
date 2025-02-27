@@ -108,7 +108,7 @@ function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
       } else if (node.type === "FRAME" || node.type === "INSTANCE" || node.type === "GROUP") {
         return node.children.map((child) => convertTextNodesToMarkdown([child])).join("\n");
       } else {
-        console.log(`Unsupported type: ${node.type}`);
+        console.error(`Unsupported type: ${node.type}`);
       }
     })
     .join("\n");
