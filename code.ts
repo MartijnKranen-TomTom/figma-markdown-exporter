@@ -54,15 +54,22 @@ function convertImageNodeToMarkdown(node: RectangleNode) {
   }
 }
 
-const formatIntro = (title: string, lastEdited: string, version: string) => `---
+const formatLabel = (value: string) =>
+  `  - label: "${value}"
+    color: grey5`;
+
+const formatLabels = (labels: string[]) => {
+  const labelStrings = labels.map((label) => formatLabel(label)).join("\n");
+  return `titleTags:
+${labelStrings}`;
+};
+
+const formatIntroWithLabels = (title: string, labels: string[]) => {
+  return `---
 title: ${title}
-titleTags:
-  - label: "${version}"
-    color: grey5
-  - label: "Last edit: ${lastEdited}"
-    color: grey5
----
-`;
+${formatLabels(labels)}
+---`;
+};
 
 function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
   return nodes
@@ -70,8 +77,7 @@ function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
     .map((node) => {
       if (node.name === "Header" && node.type === "FRAME") {
         let title;
-        let lastEdited;
-        let version;
+        const labels: string[] = [];
 
         for (const child of node.children) {
           if (child.type === "TEXT" && child.name === "Page title") {
@@ -82,18 +88,18 @@ function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
                 const child = tagNode.children[0];
                 if (child.type === "TEXT") {
                   if (tagNode.name === "Last edit") {
-                    lastEdited = child.characters;
+                    labels.push(`Last edit: ${child.characters}`);
                   } else if (tagNode.name === "Version") {
-                    version = child.characters;
+                    labels.push(`Version: ${child.characters}`);
                   }
                 }
               }
             }
           }
+        }
 
-          if (title && lastEdited && version) {
-            return formatIntro(title, lastEdited, version);
-          }
+        if (title) {
+          return formatIntroWithLabels(title, labels);
         }
       } else if (node.type === "TEXT") {
         return convertTextNodeToMarkdown(node);
