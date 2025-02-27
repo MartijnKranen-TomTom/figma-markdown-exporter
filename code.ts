@@ -59,6 +59,10 @@ const formatLabel = (value: string) =>
     color: grey5`;
 
 const formatLabels = (labels: string[]) => {
+  if (labels.length === 0) {
+    return "";
+  }
+
   const labelStrings = labels.map((label) => formatLabel(label)).join("\n");
   return `titleTags:
 ${labelStrings}`;
@@ -80,9 +84,14 @@ function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
         const labels: string[] = [];
 
         for (const child of node.children) {
+          if (!child.visible) {
+            continue;
+          }
+
           if (child.type === "TEXT" && child.name === "Page title") {
             title = child.characters;
           } else if (child.name === "Tags" && child.type === "FRAME") {
+            console.log(child.visible);
             for (const tagNode of child.children) {
               if ((tagNode.type === "COMPONENT" || tagNode.type === "INSTANCE") && tagNode.children.length > 0) {
                 const child = tagNode.children[0];
