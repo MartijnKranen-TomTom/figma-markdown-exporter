@@ -1,3 +1,9 @@
+type Hyperlink = {
+  type: "URL";
+  value: string;
+  openInNewTab: boolean;
+};
+
 type NodeRange = {
   start: number;
   end: number;
@@ -6,6 +12,7 @@ type NodeRange = {
   listOptions: TextListOptions;
   fontSize: number;
   fontWeight: number;
+  hyperlink: Hyperlink;
 };
 
 // async function convertImageNodeToBlob(node: RectangleNode) {
@@ -105,13 +112,14 @@ function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
 
 function convertTextNodeToMarkdown(node: TextNode): string {
   return node
-    .getStyledTextSegments(["fontSize", "textDecoration", "listOptions", "fontWeight"])
+    .getStyledTextSegments(["fontSize", "textDecoration", "listOptions", "fontWeight", "hyperlink"])
     .map((range) => convertRangeToMarkdown(range))
     .join("")
     .trim();
 }
 
 function convertRangeToMarkdown(range: NodeRange) {
+  console.log("range", range);
   if (range.characters.length > 1) {
     if (range.listOptions.type === "UNORDERED") {
       const lines = range.characters.split("\n");
@@ -123,6 +131,13 @@ function convertRangeToMarkdown(range: NodeRange) {
           .join("\n") +
         "\n"
       );
+    } else if (range.hyperlink) {
+      // Convert to relative link if no dot in the URL
+      let link = range.hyperlink.value;
+      if (range.hyperlink.value.indexOf(".") < 0) {
+        link = link.replace("http://", "").replace("https://", "");
+      }
+      return `[${range.characters}](${link})`;
     } else if (range.fontSize === 64) {
       return `# ${range.characters}\n`;
     } else if (range.fontWeight === 700) {
