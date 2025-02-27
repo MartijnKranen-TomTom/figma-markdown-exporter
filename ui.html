@@ -1,0 +1,85 @@
+<html>
+<head>
+    <title>UI</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        #response {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script type="text/javascript">
+        let images = [];
+
+        onmessage = (event) => {
+            const message = event.data.pluginMessage
+            console.log(message)
+            if (message.type ==="markdown") {
+                document.getElementById("response").innerHTML = message.content
+            } else if (message.type ==="images") {
+                console.log("images", message.content)
+                images = message.content;
+            } else {
+                console.log("Unknown event type: " + message.type)
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            var binaryString = window.atob(base64);
+            var binaryLen = binaryString.length;
+            var bytes = new Uint8Array(binaryLen);
+            for (var i = 0; i < binaryLen; i++) {
+                var ascii = binaryString.charCodeAt(i);
+                bytes[i] = ascii;
+            }
+            return bytes;
+        }
+
+        const downloadFileWithAnchor = (image, name) => {
+            const anchor = document.createElement("a");
+            console.log("image", image)
+
+            const blob = new Blob([image.buffer], {type: "image/png"});
+            anchor.href = window.URL.createObjectURL(blob);
+
+            // anchor.href = "data:text/plain;charset=utf-8,";
+            anchor.download = name;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+        };
+
+        function download() {
+            // const image = images[0];
+            console.log(images)
+            // console.log(image)
+
+            // for (let i = 0; i < images.length - 1; i += 1) {
+            //     const image = images[i];
+            //     downloadFileWithAnchor(image, `image_${i}.png`);
+            // }
+
+            let counter = 0;
+            for (let i = 0; i < images.length - 1; i += 1) {
+                setTimeout(() => {
+                    console.log(i)
+                    downloadFileWithAnchor(image, `image_${i}.png`);
+                }, i * 1000 );
+            }
+
+            // console.log("test")
+            // document.getElementById("response").innerHTML = fileBlob
+            // const blob = new Blob(fileBlob, {type: "image/png"});
+            // var blobUrl = URL.createObjectURL(blob);
+            // window.location.replace(blobUrl)
+        }
+    </script>
+</head>
+<body>
+    <div id="app">
+        <!-- <button onClick="download()">Download</button> -->
+        <textarea id="response" style="width: 100%;"></textarea>
+        <img id="image" style="width: 100%;" />
+    </div>
+</body>
+</html>
