@@ -48,7 +48,7 @@ function convertImageNodeToMarkdown(node: RectangleNode) {
   if (Array.isArray(node.fills)) {
     for (const paint of node.fills) {
       if (paint.type === "IMAGE") {
-        return `![local image](./files/${node.name}.jpg)`;
+        return `![${node.name}](./files/${node.name}.jpg)`;
       }
     }
   }
