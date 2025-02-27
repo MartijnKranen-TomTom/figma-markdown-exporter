@@ -129,7 +129,6 @@ function convertTextNodeToMarkdown(node: TextNode): string {
 }
 
 function convertRangeToMarkdown(range: NodeRange) {
-  console.log(range.characters, range.fontSize, range.fontWeight);
   if (range.characters.length > 1) {
     if (range.listOptions.type === "UNORDERED") {
       const lines = range.characters.split("\n");
