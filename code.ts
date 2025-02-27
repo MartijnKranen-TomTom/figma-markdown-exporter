@@ -105,13 +105,19 @@ function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
         return convertTextNodeToMarkdown(node);
       } else if (node.type === "RECTANGLE") {
         return convertImageNodeToMarkdown(node);
-      } else if (node.type === "FRAME" || node.type === "INSTANCE" || node.type === "GROUP") {
-        return node.children.map((child) => convertTextNodesToMarkdown([child])).join("\n");
+      } else if (
+        node.type === "FRAME" ||
+        node.type === "INSTANCE" ||
+        node.type === "GROUP" ||
+        node.type === "COMPONENT"
+      ) {
+        return node.children.map((child) => convertTextNodesToMarkdown([child])).join("\n") + "\n";
       } else {
         console.error(`Unsupported type: ${node.type}`);
       }
     })
-    .join("\n");
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n");
 }
 
 function convertTextNodeToMarkdown(node: TextNode): string {
@@ -123,6 +129,7 @@ function convertTextNodeToMarkdown(node: TextNode): string {
 }
 
 function convertRangeToMarkdown(range: NodeRange) {
+  console.log(range.characters, range.fontSize, range.fontWeight);
   if (range.characters.length > 1) {
     if (range.listOptions.type === "UNORDERED") {
       const lines = range.characters.split("\n");
@@ -141,8 +148,12 @@ function convertRangeToMarkdown(range: NodeRange) {
         link = link.replace("http://", "").replace("https://", "");
       }
       return `[${range.characters}](${link})`;
-    } else if (range.fontSize === 64) {
+    } else if (range.fontSize === 40) {
       return `# ${range.characters}\n`;
+    } else if (range.fontSize === 32) {
+      return `## ${range.characters}\n`;
+    } else if (range.fontSize === 28) {
+      return `### ${range.characters}\n`;
     } else if (range.fontWeight === 700) {
       return ` **${range.characters.trim()}**`;
     } else {
