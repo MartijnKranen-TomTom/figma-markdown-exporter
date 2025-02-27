@@ -1,7 +1,7 @@
 type Hyperlink = {
-  type: "URL";
+  type: "URL" | "NODE";
   value: string;
-  openInNewTab: boolean;
+  openInNewTab?: boolean;
 };
 
 type NodeRange = {
@@ -12,7 +12,7 @@ type NodeRange = {
   listOptions: TextListOptions;
   fontSize: number;
   fontWeight: number;
-  hyperlink: Hyperlink;
+  hyperlink: Hyperlink | null;
 };
 
 // async function convertImageNodeToBlob(node: RectangleNode) {
@@ -74,12 +74,10 @@ function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
         let version;
 
         for (const child of node.children) {
-          console.log(child.name);
           if (child.type === "TEXT" && child.name === "Page title") {
             title = child.characters;
           } else if (child.name === "Tags" && child.type === "FRAME") {
             for (const tagNode of child.children) {
-              console.log(tagNode.name, tagNode.type);
               if ((tagNode.type === "COMPONENT" || tagNode.type === "INSTANCE") && tagNode.children.length > 0) {
                 const child = tagNode.children[0];
                 if (child.type === "TEXT") {
@@ -119,7 +117,6 @@ function convertTextNodeToMarkdown(node: TextNode): string {
 }
 
 function convertRangeToMarkdown(range: NodeRange) {
-  console.log("range", range);
   if (range.characters.length > 1) {
     if (range.listOptions.type === "UNORDERED") {
       const lines = range.characters.split("\n");
