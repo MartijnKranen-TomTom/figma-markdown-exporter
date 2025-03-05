@@ -72,6 +72,7 @@ const formatIntroWithLabels = (title: string, labels: string[]) => {
   return `---
 title: ${title}
 ${formatLabels(labels)}
+hideSubmenu: true
 ---`;
 };
 
@@ -91,7 +92,6 @@ function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
           if (child.type === "TEXT" && child.name === "Page title") {
             title = child.characters;
           } else if (child.name === "Tags" && child.type === "FRAME") {
-            console.log(child.visible);
             for (const tagNode of child.children) {
               if ((tagNode.type === "COMPONENT" || tagNode.type === "INSTANCE") && tagNode.children.length > 0) {
                 const child = tagNode.children[0];
@@ -109,6 +109,15 @@ function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
 
         if (title) {
           return formatIntroWithLabels(title, labels);
+        }
+      } else if (
+        (node.type === "COMPONENT" || node.type === "INSTANCE") &&
+        (node.name === "Highlight" || node.name === "Blockquote")
+      ) {
+        for (const child of node.children) {
+          if (child.type === "TEXT") {
+            return convertTextNodeToMarkdown(child, "code");
+          }
         }
       } else if (node.type === "TEXT") {
         return convertTextNodeToMarkdown(node);
@@ -129,12 +138,32 @@ function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
     .replace(/\n{3,}/g, "\n\n");
 }
 
-function convertTextNodeToMarkdown(node: TextNode): string {
+function convertTextNodeToMarkdown(node: TextNode, containerStyle?: string): string {
   return node
     .getStyledTextSegments(["fontSize", "textDecoration", "listOptions", "fontWeight", "hyperlink"])
-    .map((range) => convertRangeToMarkdown(range))
+    .map((range) => {
+      const nodeMarkdown = convertRangeToMarkdown(range);
+      if (!nodeMarkdown) {
+        return "";
+      }
+
+      const containerMarkdown = addContainerMarkdown(nodeMarkdown, containerStyle);
+      console.log(nodeMarkdown, containerMarkdown);
+      return containerMarkdown;
+    })
     .join("")
     .trim();
+}
+
+function addContainerMarkdown(text: string, containerStyle?: string) {
+  if (containerStyle === "code") {
+    return text
+      .split("\n")
+      .map((line) => `> ${line}`)
+      .join("\n");
+  }
+
+  return text;
 }
 
 function convertRangeToMarkdown(range: NodeRange) {
