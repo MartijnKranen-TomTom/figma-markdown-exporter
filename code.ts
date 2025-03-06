@@ -76,11 +76,32 @@ hideSubmenu: true
 ---`;
 };
 
-function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
+function createTable(node: SceneNode) {
+  // Todo: add check for table
+  if (node.type !== "COMPONENT" && node.type !== "INSTANCE") {
+    return;
+  }
+
+  const elements = node.children.filter((child) => child.type === "FRAME");
+  const headers = elements[0].children.map((child) => convertNodesToMarkdown([child]));
+  const dataRows = elements.slice(1).map((node) => convertNodesToMarkdown(node.children.slice(), " | ", false));
+
+  const headerString = `| ${headers.join(" | ")} |`;
+  const headerSeparator = `|  ${headers.map(() => "--------").join(" | ")} |`;
+  const dataRowsString = `| ${dataRows.join(" |\n|")} |`;
+
+  return `
+${headerString}
+${headerSeparator}
+${dataRowsString}
+`;
+}
+
+function convertNodesToMarkdown(nodes: SceneNode[] | FrameNode[], separator = "\n", addNewlines = true): string {
   return nodes
     .filter((node) => node.visible)
     .map((node) => {
-      if (node.name === "Header" && node.type === "FRAME") {
+      if (node.type === "FRAME" && node.name === "Header") {
         let title;
         const labels: string[] = [];
 
@@ -119,22 +140,26 @@ function convertTextNodesToMarkdown(nodes: SceneNode[]): string {
             return convertTextNodeToMarkdown(child, "code");
           }
         }
+      } else if ((node.type === "COMPONENT" || node.type === "INSTANCE") && node.name === "Table") {
+        return createTable(node);
       } else if (node.type === "TEXT") {
         return convertTextNodeToMarkdown(node);
       } else if (node.type === "RECTANGLE") {
-        return convertImageNodeToMarkdown(node);
+        return `\n${convertImageNodeToMarkdown(node)}`;
       } else if (
         node.type === "FRAME" ||
         node.type === "INSTANCE" ||
         node.type === "GROUP" ||
         node.type === "COMPONENT"
       ) {
-        return node.children.map((child) => convertTextNodesToMarkdown([child])).join("\n") + "\n";
+        return `${node.children
+          .map((child) => convertNodesToMarkdown([child], separator, addNewlines))
+          .join(addNewlines ? "\n" : "")}`;
       } else {
         console.error(`Unsupported type: ${node.type}`);
       }
     })
-    .join("\n")
+    .join(separator)
     .replace(/\n{3,}/g, "\n\n");
 }
 
@@ -147,9 +172,7 @@ function convertTextNodeToMarkdown(node: TextNode, containerStyle?: string): str
         return "";
       }
 
-      const containerMarkdown = addContainerMarkdown(nodeMarkdown, containerStyle);
-      console.log(nodeMarkdown, containerMarkdown);
-      return containerMarkdown;
+      return addContainerMarkdown(nodeMarkdown, containerStyle);
     })
     .join("")
     .trim();
@@ -200,7 +223,7 @@ function convertRangeToMarkdown(range: NodeRange) {
 }
 
 async function main() {
-  const markdown = convertTextNodesToMarkdown(Array.from(figma.currentPage.selection));
+  const markdown = convertNodesToMarkdown(Array.from(figma.currentPage.selection));
 
   figma.showUI(__html__, { themeColors: true, width: 800, height: 400 });
   figma.ui.postMessage({ type: "markdown", content: markdown });
