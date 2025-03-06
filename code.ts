@@ -140,6 +140,18 @@ function convertNodesToMarkdown(nodes: SceneNode[] | FrameNode[], separator = "\
             return convertTextNodeToMarkdown(child, "code");
           }
         }
+      } else if (
+        (node.type === "COMPONENT" || node.type === "INSTANCE") &&
+        (node.name === "User prompt" || node.name === "Assistant prompt")
+      ) {
+        const contentNode = node.children[0] as FrameNode;
+        const type = node.name === "User prompt" ? "user" : "assistant";
+
+        for (const child of contentNode.children) {
+          if (child.type === "TEXT") {
+            return `<SpeechBubble type="${type}">${convertTextNodeToMarkdown(child)}</SpeechBubble>`;
+          }
+        }
       } else if ((node.type === "COMPONENT" || node.type === "INSTANCE") && node.name === "Table") {
         return createTable(node);
       } else if (node.type === "TEXT") {
