@@ -13,7 +13,7 @@
 
         onmessage = (event) => {
             const message = event.data.pluginMessage
-            console.log(message)
+            // console.log(message)
             if (message.type ==="markdown") {
                 document.getElementById("response").innerHTML = message.content
             } else if (message.type ==="images") {
