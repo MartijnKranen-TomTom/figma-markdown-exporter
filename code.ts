@@ -109,9 +109,10 @@ function createTable(node: SceneNode) {
     return;
   }
 
-  const elements = node.children.filter((child) => child.type === "FRAME");
-  const headers = elements[0].children.map((child) => convertNodesToMarkdown([child]));
-  const columnAlignment = elements[0].children.map((child) => getColumnAlignment(child));
+  const elements = node.children.filter((node) => node.visible).filter((child) => child.type === "FRAME");
+  const headerElements = elements[0].children.filter((node) => node.visible);
+  const headers = headerElements.map((child) => convertNodesToMarkdown([child]));
+  const columnAlignment = headerElements.filter((node) => node.visible).map((child) => getColumnAlignment(child));
   const dataRows = elements.slice(1).map((node) => convertNodesToMarkdown(node.children.slice(), " | ", false));
 
   const headerString = `| ${headers.join(" | ")} |`;
