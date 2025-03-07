@@ -76,6 +76,30 @@ hideSubmenu: true
 ---`;
 };
 
+const getColumnAlignment = (child: SceneNode) => {
+  if (child.type === "INSTANCE" || child.type === "COMPONENT") {
+    switch (child.counterAxisAlignItems) {
+      case "CENTER":
+        return "CENTER";
+      case "MAX":
+        return "RIGHT";
+      default:
+        return "LEFT";
+    }
+  } else if (child.type === "TEXT") {
+    switch (child.textAlignHorizontal) {
+      case "CENTER":
+        return "CENTER";
+      case "RIGHT":
+        return "RIGHT";
+      default:
+        return "LEFT";
+    }
+  }
+
+  return "LEFT";
+};
+
 function createTable(node: SceneNode) {
   // Todo: add check for table
   if (node.type !== "COMPONENT" && node.type !== "INSTANCE") {
@@ -84,10 +108,19 @@ function createTable(node: SceneNode) {
 
   const elements = node.children.filter((child) => child.type === "FRAME");
   const headers = elements[0].children.map((child) => convertNodesToMarkdown([child]));
+  const columnAlignment = elements[0].children.map((child) => getColumnAlignment(child));
   const dataRows = elements.slice(1).map((node) => convertNodesToMarkdown(node.children.slice(), " | ", false));
 
   const headerString = `| ${headers.join(" | ")} |`;
-  const headerSeparator = `|  ${headers.map(() => "--------").join(" | ")} |`;
+  const headerSeparator = `|  ${headers
+    .map((_child, index) => {
+      return columnAlignment[index] === "LEFT"
+        ? "--------:"
+        : columnAlignment[index] === "CENTER"
+        ? ":------:"
+        : "--------";
+    })
+    .join(" | ")} |`;
   const dataRowsString = `| ${dataRows.join(" |\n|")} |`;
 
   return `
