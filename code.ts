@@ -73,7 +73,10 @@ const formatIntroWithLabels = (title: string, labels: string[]) => {
 title: ${title}
 ${formatLabels(labels)}
 hideSubmenu: true
----`;
+---
+
+import SpeechBubble from './chat/SpeechBubble';
+`;
 };
 
 const getColumnAlignment = (child: SceneNode) => {
