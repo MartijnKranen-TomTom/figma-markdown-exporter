@@ -113,13 +113,9 @@ function createTable(node: SceneNode) {
 
   const headerString = `| ${headers.join(" | ")} |`;
   const headerSeparator = `|  ${headers
-    .map((_child, index) => {
-      return columnAlignment[index] === "LEFT"
-        ? "--------:"
-        : columnAlignment[index] === "CENTER"
-        ? ":------:"
-        : "--------";
-    })
+    .map((_child, index) =>
+      columnAlignment[index] === "LEFT" ? "--------:" : columnAlignment[index] === "CENTER" ? ":------:" : "--------"
+    )
     .join(" | ")} |`;
   const dataRowsString = `| ${dataRows.join(" |\n|")} |`;
 
